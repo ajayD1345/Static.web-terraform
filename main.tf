@@ -1,10 +1,54 @@
 # creating the s3-buckets
 resource "aws_s3_bucket" "bucket" {
-  bucket = "myj-mini-bucket1"
+  bucket = var.bucket_name
 
 tags = {
     Name = "My Static Website"
   }
+}
+
+resource "aws_s3_bucket_ownership_controls" "example1" {
+  bucket = aws_s3_bucket.bucket.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "example2" {
+  bucket = aws_s3_bucket.bucket.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_acl" "example3" {
+  depends_on = [
+    aws_s3_bucket_ownership_controls.example1,
+    aws_s3_bucket_public_access_block.example2,
+  ]
+
+  bucket = aws_s3_bucket.bucket.id
+  acl    = "public-read"
+}
+
+resource "aws_s3_bucket_policy" "bucket_policy" {
+  bucket = aws_s3_bucket.bucket.bucket
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = "*",
+        Action = [
+          "s3:GetObject"
+        ],
+        Resource = "arn:aws:s3:::myj-mini-bucket1/*"
+      }
+    ]
+  })
 }
 
 # Configure the S3 bucket for website hosting
@@ -25,14 +69,14 @@ resource "aws_s3_object" "index" {
   bucket = aws_s3_bucket.bucket.id 
   key    = "index.html"
   content_type = "text/html"
-  source = "~/Static_web-terraform/html/index.html" 
+  source = "~/Static.web-terraform/html/index.html" 
 }
 
 # Upload the error.html to the S3 bucket
 resource "aws_s3_object" "error" { 
   bucket = aws_s3_bucket.bucket.id
   key    = "error.html"
-  source = "~/Static_web-terraform/html/index.html"
+  source = "~/Static.web-terraform/html/index.html"
   content_type = "text/html"
 }
 
@@ -69,8 +113,7 @@ restrictions {
   }
 
   viewer_certificate {
-    acm_certificate_arn            = data.aws_acm_certificate.cert1.arn
+    acm_certificate_arn            = var.certificate_arn
     ssl_support_method             = "sni-only"
-    minimum_protocol_version       = "TLSv1.2_2019"
   }
 }

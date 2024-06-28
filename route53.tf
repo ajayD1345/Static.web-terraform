@@ -1,10 +1,10 @@
 resource "aws_route53_zone" "main" {
-  name = "static-web-hosting.com"
+  name = var.domain_name
 }
 
 resource "aws_route53_record" "www" {
-  zone_id = "aws_route53_zone.main.id"
-  name    = "www.static-web-hosting.com"
+  zone_id = aws_route53_zone.main.id
+  name    = var.domain_name
   type    = "A"
 
   alias {
@@ -13,4 +13,3 @@ resource "aws_route53_record" "www" {
     evaluate_target_health = false
   }
 }
-
