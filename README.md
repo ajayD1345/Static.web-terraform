@@ -30,5 +30,5 @@ This project sets up the infrastructure for hosting a static website on AWS usin
 5. Run `terraform apply` to deploy the infrastructure.
 
 ## Diagram
-![Infrastructure Diagram](s3-static-website.png)
+![Infrastructure Diagram](s3-static-website)
 
